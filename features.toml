@@ -148,3 +148,24 @@ title = "Fetch pinned prebuilt packages and tools by version (cipd-style) and a 
 from = ["depot_tools", "infra"]
 crate = "ay-tools-packages"
 status = "planned"
+
+[[feature]]
+id = "wpt-gate"
+title = "Run the Web Platform Tests against an engine in sharded, time-budgeted batches and gate on expectations (pass, expected fail, timeout, crash)"
+from = ["kitesurf"]
+crate = "ay-tools-tasks"
+status = "planned"
+
+[[feature]]
+id = "cdp-suites"
+title = "Run the Puppeteer and Playwright suites through a CDP endpoint with per-test expectations, to measure an engine against Chrome"
+from = ["kitesurf"]
+crate = "ay-tools-tasks"
+status = "planned"
+
+[[feature]]
+id = "patch-queue"
+title = "Keep a patch series on top of an upstream release as commits in a fork, regenerate it, and report the patches that no longer apply"
+from = ["kitesurf", "depot_tools"]
+crate = "ay-tools-deps"
+status = "planned"

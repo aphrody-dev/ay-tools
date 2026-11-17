@@ -91,13 +91,41 @@ export function goBuild(tool: Tool, srcDir: string, out: string): string {
   return target;
 }
 
+/** The CMake toolchain file for clang-cl against the Windows SDK and CRT that cargo-xwin caches (`xwin` is the cache's xwin directory). */
+export function toolchainFile(xwin: string): string {
+  const include = ["crt/include", "sdk/include/ucrt", "sdk/include/um", "sdk/include/shared", "sdk/include/winrt"].map((path) => `/imsvc ${xwin}/${path}`).join("\n    ");
+  const libraries = ["crt/lib/x86_64", "sdk/lib/um/x86_64", "sdk/lib/ucrt/x86_64"].map((path) => `-libpath:"${xwin}/${path}"`).join("\n    ");
+  return `set(CMAKE_SYSTEM_NAME Windows)
+set(CMAKE_SYSTEM_PROCESSOR AMD64)
+set(CMAKE_C_COMPILER clang-cl)
+set(CMAKE_CXX_COMPILER clang-cl)
+set(CMAKE_AR llvm-lib)
+set(CMAKE_RC_COMPILER llvm-rc)
+set(CMAKE_LINKER lld-link)
+set(CMAKE_MSVC_RUNTIME_LIBRARY MultiThreaded)
+set(COMPILE_FLAGS --target=x86_64-pc-windows-msvc -Wno-unused-command-line-argument -fuse-ld=lld-link
+    ${include})
+set(LINK_FLAGS /manifest:no
+    ${libraries})
+string(REPLACE ";" " " COMPILE_FLAGS "\${COMPILE_FLAGS}")
+string(REPLACE ";" " " LINK_FLAGS "\${LINK_FLAGS}")
+set(CMAKE_C_FLAGS_INIT "\${COMPILE_FLAGS}")
+set(CMAKE_CXX_FLAGS_INIT "\${COMPILE_FLAGS} /EHsc")
+set(CMAKE_EXE_LINKER_FLAGS_INIT "\${LINK_FLAGS}")
+`;
+}
+
 /** CMake with clang-cl, the Windows SDK and CRT of cargo-xwin, a static CRT and thin LTO; the result is one self-contained .exe. */
-export function cmakeBuild(tool: Tool, srcDir: string, out: string, toolchain = join(homedir(), ".cache", "cargo-xwin", "cmake", "clang-cl", "x86_64-pc-windows-msvc-toolchain.cmake")): string {
+export function cmakeBuild(tool: Tool, srcDir: string, out: string, xwin = join(homedir(), ".cache", "cargo-xwin", "xwin")): string {
+  sh(["cargo", "xwin", "cache", "xwin"]);
   const source = join(srcDir, tool.dir);
   const build = join(source, ".build-windows");
+  mkdirSync(build, { recursive: true });
+  const toolchain = join(build, "windows-msvc.cmake");
+  writeFileSync(toolchain, toolchainFile(xwin));
   sh([
     "cmake", "-S", source, "-B", build, "-G", "Ninja", `-DCMAKE_TOOLCHAIN_FILE=${toolchain}`, "-DCMAKE_BUILD_TYPE=Release", "-DBUILD_TESTING=OFF",
-    "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded", "-DCMAKE_C_FLAGS_RELEASE=/O2 /DNDEBUG /clang:-flto=thin", "-DCMAKE_CXX_FLAGS_RELEASE=/O2 /DNDEBUG /clang:-flto=thin",
+    "-DCMAKE_C_FLAGS_RELEASE=/O2 /DNDEBUG /clang:-flto=thin", "-DCMAKE_CXX_FLAGS_RELEASE=/O2 /DNDEBUG /clang:-flto=thin",
   ]);
   sh(["cmake", "--build", build, "--target", tool.main]);
   const target = join(out, `${tool.main}.exe`);

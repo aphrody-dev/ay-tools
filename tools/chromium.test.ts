@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { chromiumTools, loadRegistry, pinOf, type Dependency } from "./chromium.ts";
+import { chromiumTools, loadRegistry, pinOf, toolchainFile, type Dependency } from "./chromium.ts";
 import { home } from "./home.ts";
 
 const dependencies: Dependency[] = [
@@ -62,5 +62,23 @@ describe("home", () => {
     } finally {
       rmSync(root, { recursive: true, force: true });
     }
+  });
+});
+
+describe("the CMake toolchain file", () => {
+  const file = toolchainFile("/cache/xwin");
+
+  test("targets MSVC x86-64 with clang-cl, lld-link and a static CRT", () => {
+    expect(file).toContain("set(CMAKE_SYSTEM_NAME Windows)");
+    expect(file).toContain("--target=x86_64-pc-windows-msvc");
+    expect(file).toContain("set(CMAKE_CXX_COMPILER clang-cl)");
+    expect(file).toContain("set(CMAKE_LINKER lld-link)");
+    expect(file).toContain("set(CMAKE_MSVC_RUNTIME_LIBRARY MultiThreaded)");
+  });
+
+  test("names the headers and libraries of the cached SDK and CRT, and keeps the CMake variable references literal", () => {
+    for (const path of ["crt/include", "sdk/include/ucrt", "sdk/include/um", "sdk/include/shared"]) expect(file).toContain(`/imsvc /cache/xwin/${path}`);
+    for (const path of ["crt/lib/x86_64", "sdk/lib/um/x86_64", "sdk/lib/ucrt/x86_64"]) expect(file).toContain(`-libpath:"/cache/xwin/${path}"`);
+    expect(file).toContain('set(CMAKE_CXX_FLAGS_INIT "${COMPILE_FLAGS} /EHsc")');
   });
 });

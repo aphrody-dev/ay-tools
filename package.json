@@ -1,0 +1,9 @@
+{
+  "name": "ay-tools",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "references": "bun tools/reference.ts fetch",
+    "test": "bun test tools"
+  }
+}

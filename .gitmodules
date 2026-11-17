@@ -1,0 +1,15 @@
+[submodule "build/just"]
+	path = build/just
+	url = ../../aphrody-labs/just.git
+[submodule "build/turborepo"]
+	path = build/turborepo
+	url = ../../aphrody-labs/turborepo.git
+[submodule "build/bazel"]
+	path = build/bazel
+	url = ../../aphrody-labs/bazel.git
+[submodule "build/rules_rust"]
+	path = build/rules_rust
+	url = ../../aphrody-labs/rules_rust.git
+[submodule "build/rules_cc"]
+	path = build/rules_cc
+	url = ../../aphrody-labs/rules_cc.git

@@ -1,0 +1,150 @@
+# The features of the merged tools, one row per capability, with the upstream that has it and the ay-tools crate that carries it.
+# status: planned | partial | done. A row is done only with a test id in `proof`, as in the other Aphrody repositories.
+
+[[feature]]
+id = "recipes"
+title = "Recipes with parameters, dependencies, shebang and per-OS variants, in a plain text file"
+from = ["just"]
+crate = "ay-tools-just"
+status = "planned"
+
+[[feature]]
+id = "dotenv-modules"
+title = "dotenv loading, imports and modules, settings, backtick variables, conditional expressions"
+from = ["just"]
+crate = "ay-tools-just"
+status = "planned"
+
+[[feature]]
+id = "task-graph"
+title = "Task graph over the packages of a workspace: dependsOn, topological order, parallel execution"
+from = ["turborepo"]
+crate = "ay-tools-tasks"
+status = "planned"
+
+[[feature]]
+id = "input-hashing"
+title = "Content-addressed task hashing of inputs, environment and dependencies"
+from = ["turborepo", "bazel"]
+crate = "ay-tools-cache"
+status = "planned"
+
+[[feature]]
+id = "local-remote-cache"
+title = "Local and remote task and action cache over a content-addressed store (REAPI-compatible)"
+from = ["turborepo", "bazel", "siso"]
+crate = "ay-tools-cache"
+status = "planned"
+
+[[feature]]
+id = "filter-affected"
+title = "Run only the packages named by a filter or affected by a change since a git ref"
+from = ["turborepo"]
+crate = "ay-tools-tasks"
+status = "planned"
+
+[[feature]]
+id = "watch-daemon"
+title = "Watch mode and a long-lived daemon that keeps the graph and file hashes warm"
+from = ["turborepo", "bazel"]
+crate = "ay-tools-tasks"
+status = "planned"
+
+[[feature]]
+id = "prune"
+title = "Prune a workspace to one package and its dependencies for a container layer"
+from = ["turborepo"]
+crate = "ay-tools-tasks"
+status = "planned"
+
+[[feature]]
+id = "build-files"
+title = "Declarative build files with rules and macros, evaluated without side effects (Starlark)"
+from = ["bazel"]
+crate = "ay-tools-build"
+status = "planned"
+
+[[feature]]
+id = "hermetic-actions"
+title = "Hermetic sandboxed actions with declared inputs and outputs"
+from = ["bazel", "siso"]
+crate = "ay-tools-build"
+status = "planned"
+
+[[feature]]
+id = "query"
+title = "Query the target, configured-target and action graphs"
+from = ["bazel"]
+crate = "ay-tools-build"
+status = "planned"
+
+[[feature]]
+id = "modules"
+title = "Versioned module dependencies with a lockfile and toolchain resolution by platform"
+from = ["bazel"]
+crate = "ay-tools-build"
+status = "planned"
+
+[[feature]]
+id = "rust-rules"
+title = "Rust library, binary, test and proc-macro rules; Cargo.lock as the dependency universe; clippy, rustfmt and bindgen"
+from = ["rules_rust"]
+crate = "ay-tools-rust"
+status = "planned"
+
+[[feature]]
+id = "cc-rules"
+title = "C and C++ library, binary and test rules with toolchain features (LTO, PIC, sanitizers)"
+from = ["rules_cc", "chromium-build"]
+crate = "ay-tools-cc"
+status = "planned"
+
+[[feature]]
+id = "gn-ninja"
+title = "Read GN build files and run a ninja-compatible build with remote execution"
+from = ["chromium-build", "siso"]
+crate = "ay-tools-ninja"
+status = "planned"
+
+[[feature]]
+id = "gclient-deps"
+title = "Parse a DEPS file (vars, Var(), conditions, hooks, recursedeps) and resolve the checkout set for a target OS and CPU"
+from = ["depot_tools"]
+crate = "ay-tools-deps"
+status = "partial"
+proof = "crates/ay-tools-deps tests (13); tools/parity.ts: the resolved dependencies and hooks of Chromium's DEPS equal depot_tools' own gclient_eval for linux/x64, android/arm64, win/x64, mac/arm64, ios/arm64 and linux with overrides (196 to 239 dependencies)"
+
+[[feature]]
+id = "gclient-sync"
+title = "Sync every dependency of a DEPS tree at its pinned revision, with shallow and cached clones, and run the hooks"
+from = ["depot_tools"]
+crate = "ay-tools-deps"
+status = "planned"
+
+[[feature]]
+id = "fetch"
+title = "Check out a named project in one command from a config"
+from = ["depot_tools"]
+crate = "ay-tools-deps"
+status = "planned"
+
+[[feature]]
+id = "roll-dep"
+title = "Move a dependency pin of a DEPS file to a newer revision and describe the roll"
+from = ["depot_tools"]
+crate = "ay-tools-deps"
+status = "planned"
+
+[[feature]]
+id = "code-review"
+title = "Upload, format, lint and land a change through Gerrit or a pull request, with presubmit checks"
+from = ["depot_tools"]
+crate = "ay-tools-cl"
+status = "planned"
+
+[[feature]]
+id = "packages"
+title = "Fetch pinned prebuilt packages and tools by version (cipd-style) and a hermetic Python/Bun environment"
+from = ["depot_tools", "infra"]
+crate = "ay-tools-packages"
+status = "planned"

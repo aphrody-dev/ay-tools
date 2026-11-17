@@ -1,0 +1,36 @@
+# Sources of ay-tools. GitHub upstreams are aphrody-labs forks and submodules (forks.toml); the Chromium tools are not on GitHub and are
+# pinned references: tools/reference.ts fetches a pinned tree as an archive into the git-ignored .cache/ for parity tests and for reading
+# their behavior, and never copies it into this repository. Pins move with `bun tools/reference.ts update`.
+
+[meta]
+id = "ay-tools"
+binary = "ay"
+
+[[reference]]
+name = "depot_tools"
+url = "https://chromium.googlesource.com/chromium/tools/depot_tools"
+commit = "ec77017fb3e090ff02bffb9c6980ebcdd3006ddc"
+license = "BSD-3-Clause"
+takes = "gclient, fetch, git cl, roll-dep, autoninja, cipd and vpython wrappers, presubmit"
+
+[[reference]]
+name = "chromium-build"
+url = "https://chromium.googlesource.com/build"
+commit = "46073ab3782c86284dc19c7e3e794a599eff41a5"
+license = "BSD-3-Clause"
+takes = "tools of the Chrome Build Team (siso, kajiya, gong, runmc, bench)"
+
+[[reference]]
+name = "infra-build-2025-06"
+url = "https://chromium.googlesource.com/infra/infra/go/src/infra"
+commit = "1e819790aacff130baa421f647da27b9fed99ccb"
+path = "build"
+license = "BSD-3-Clause"
+takes = "the same Build Team tools before they moved to the build repository: the linked historical snapshot"
+
+[[reference]]
+name = "infra"
+url = "https://chromium.googlesource.com/infra/infra"
+commit = "f50a8b2930b23ab72da84c5356644e5996eed5fb"
+license = "BSD-3-Clause"
+takes = "recipes, luci and cipd conventions the build tools talk to"

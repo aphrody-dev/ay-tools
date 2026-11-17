@@ -1,0 +1,45 @@
+# Upstreams of ay-tools that live on GitHub, as aphrody-labs forks and submodules. Created with rust-mono's tools/add.ts, fork.ts and submodules.ts
+# (bun ../rust-mono/tools/<tool>.ts --manifest forks.toml). The Chromium tools (depot_tools, build, infra build) are not on GitHub:
+# they are pinned references in ay-tools.toml.
+
+[meta]
+org = "aphrody-labs"
+consumer = "aphrody-dev"
+
+[groups]
+build = "build systems and task runners merged into ay-tools"
+
+[[fork]]
+path = "build/just"
+name = "just"
+upstream = "casey/just"
+branch = "master"
+role = "consumer"
+
+[[fork]]
+path = "build/turborepo"
+name = "turborepo"
+upstream = "vercel/turborepo"
+branch = "main"
+role = "consumer"
+
+[[fork]]
+path = "build/bazel"
+name = "bazel"
+upstream = "bazelbuild/bazel"
+branch = "master"
+role = "consumer"
+
+[[fork]]
+path = "build/rules_rust"
+name = "rules_rust"
+upstream = "bazelbuild/rules_rust"
+branch = "main"
+role = "consumer"
+
+[[fork]]
+path = "build/rules_cc"
+name = "rules_cc"
+upstream = "bazelbuild/rules_cc"
+branch = "main"
+role = "consumer"

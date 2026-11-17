@@ -1,6 +1,6 @@
-# Upstreams of ay-tools that live on GitHub, as aphrody-labs forks and submodules. Created with rust-mono's tools/add.ts, fork.ts and submodules.ts
-# (bun ../rust-mono/tools/<tool>.ts --manifest forks.toml). The Chromium tools (depot_tools, build, infra build) are not on GitHub:
-# they are pinned references in ay-tools.toml.
+# Upstreams of ay-tools that live on GitHub, as aphrody-labs forks. They are not part of this repository: tools/fetch.ts checks them out
+# as plain folders under the data directory (tools/home.ts). Created with rust-mono's tools/add.ts and fork.ts (--manifest forks.toml).
+# The Chromium tools are not on GitHub: ay-tools.toml pins them and tools/chromium.ts fetches them.
 
 [meta]
 org = "aphrody-labs"

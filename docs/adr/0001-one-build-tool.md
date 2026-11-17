@@ -7,9 +7,10 @@ recipes, Turborepo for task graphs and caching, Bazel for hermetic builds (with 
 Chrome Build Team's tools (`siso`, `gn` conventions in `chromium/build`) for the Chromium checkout. Each has its own file format, its own
 cache and its own idea of a package, and none of them is a Rust library another tool can call.
 
-Upstreams on GitHub are aphrody-labs forks and submodules here (`forks.toml`: `just`, `turborepo`, `bazel`, `rules_rust`, `rules_cc`). The
-Chromium tools are not on GitHub: they are pinned references (`ay-tools.toml`) fetched as archives into `.cache/` for reading and for
-parity tests.
+Upstreams on GitHub are aphrody-labs forks (`forks.toml`: `just`, `turborepo`, `bazel`, `rules_rust`, `rules_cc`), checked out as plain folders
+outside this repository. The Chromium tools are not on GitHub: `ay-tools.toml` names them, `tools/chromium.ts` resolves the DEPS of a real
+Chromium release with `ay-deps` and fetches each source at the revision that DEPS pins (siso and the luci tools from the infra and build
+repositories, ninja from its tag, depot_tools). The repository holds no `vendor/` and no `third_party/`.
 
 ## Decision
 
@@ -35,6 +36,9 @@ itself, on the same input, where one exists. `ay-tools-deps` is the first: `tool
 
 - Rust 1.100.0 (`rust-toolchain.toml`, the Aphrody toolchain policy). The release profile is whole-program: fat LTO, one codegen unit,
   `panic = "abort"`, stripped symbols. Heavy builds and tests run on the build host, never on the PC.
+- Windows builds are cross-compiled on the build host (and in the `windows` workflow) with cargo-xwin and clang-cl: Go tools with
+  `GOOS=windows`, C++ tools with CMake, a static CRT and thin LTO, ay-tools' own crates with fat LTO. The outputs go to Cloudflare R2 (bucket
+  `aphrody-chromium`, prefix `ay-tools/`) and are served by a Worker on workers.dev.
 - TypeScript tooling around the binary (references, parity, later the task runner's configuration front end) is compiled with
   `bun build --compile --bytecode --production`, Bun's ahead-of-time single-file executable.
 
@@ -42,6 +46,6 @@ itself, on the same input, where one exists. `ay-tools-deps` is the first: `tool
 
 - One cache and one graph replace five. Existing `justfile`, `turbo.json` and `DEPS` files keep working while their crates land, because
   each crate reads the upstream format.
-- The forks stay unmodified submodules; ay-tools adds crates beside them and never copies their code.
+- The forks stay unmodified and outside the tree; ay-tools adds crates and never copies their code.
 - Starlark and the Bazel build language are the largest piece; `ay-tools-build` starts with the declarative subset the Aphrody
   repositories use, measured by `features.toml`, and grows by proof.

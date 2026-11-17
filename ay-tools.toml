@@ -34,3 +34,108 @@ url = "https://chromium.googlesource.com/infra/infra"
 commit = "f50a8b2930b23ab72da84c5356644e5996eed5fb"
 license = "BSD-3-Clause"
 takes = "recipes, luci and cipd conventions the build tools talk to"
+
+# Chromium's build tools and infra, at the revisions a real Chromium release pins. The pins are not typed here: tools/chromium.ts resolves
+# the DEPS file of `version` with ay-deps (this repository's gclient in Rust) and reads each source's revision from the dependency named
+# by `dep`, so a new Chromium version moves every pin at once. Sources and outputs live under the data directory (tools/home.ts).
+[chromium]
+version = "160.0.8166.0"
+# The target the binaries are built for, and the build host's Rust target: cross builds run on the build host.
+windows = "x86_64-pc-windows-msvc"
+
+[[chromium.source]]
+name = "build"
+repo = "https://chromium.googlesource.com/build"
+dep = "src/third_party/siso/cipd"
+package = "build/siso/"
+
+[[chromium.source]]
+name = "infra-luci"
+repo = "https://chromium.googlesource.com/infra/infra"
+dep = "src/tools/luci-go"
+package = "infra/tools/luci/cas/"
+submodules = ["go/src/go.chromium.org/luci"]
+
+[[chromium.source]]
+name = "infra-resultdb"
+repo = "https://chromium.googlesource.com/infra/infra"
+dep = "src/tools/resultdb"
+package = "infra/tools/result_adapter/"
+# The Go module of infra replaces these three modules by sibling submodules (go.mod `replace ... => ../go.chromium.org/...`).
+submodules = ["go/src/go.chromium.org/luci", "go/src/go.chromium.org/chromiumos/config", "go/src/go.chromium.org/chromiumos/infra/proto"]
+
+[[chromium.source]]
+name = "gn"
+repo = "https://gn.googlesource.com/gn"
+dep = "src/buildtools/linux64"
+package = "gn/gn/"
+
+[[chromium.source]]
+name = "ninja"
+repo = "https://github.com/ninja-build/ninja"
+dep = "src/third_party/ninja"
+package = "infra/3pp/tools/ninja/"
+
+[[chromium.source]]
+name = "depot_tools"
+repo = "https://chromium.googlesource.com/chromium/tools/depot_tools"
+dep = "src/third_party/depot_tools"
+
+# kind go: `go build` for GOOS=windows (no cgo, trimmed, stripped). kind cmake: clang-cl with the Windows SDK of cargo-xwin and thin-LTO
+# through lld-link. kind copy: the tree as it is (Python tools). `dir` is relative to the source, `main` the package or target.
+[[chromium.tool]]
+name = "siso"
+source = "build"
+kind = "go"
+dir = "siso"
+main = "."
+
+[[chromium.tool]]
+name = "cas"
+source = "infra-luci"
+kind = "go"
+dir = "go/src/go.chromium.org/luci"
+main = "./client/cmd/cas"
+
+[[chromium.tool]]
+name = "isolate"
+source = "infra-luci"
+kind = "go"
+dir = "go/src/go.chromium.org/luci"
+main = "./client/cmd/isolate"
+
+[[chromium.tool]]
+name = "swarming"
+source = "infra-luci"
+kind = "go"
+dir = "go/src/go.chromium.org/luci"
+main = "./client/cmd/swarming"
+
+[[chromium.tool]]
+name = "result_adapter"
+source = "infra-resultdb"
+kind = "go"
+dir = "go/src/infra"
+main = "./tools/result_adapter"
+
+[[chromium.tool]]
+name = "ninja"
+source = "ninja"
+kind = "cmake"
+dir = "."
+main = "ninja"
+
+[[chromium.tool]]
+name = "depot_tools"
+source = "depot_tools"
+kind = "copy"
+dir = "."
+main = "."
+
+# This repository's own binaries for Windows: `main` is the Cargo package; its .exe files go to the same output folder.
+[[chromium.tool]]
+name = "ay-deps"
+source = "ay-tools"
+kind = "rust"
+dir = "."
+main = "ay-tools-deps"

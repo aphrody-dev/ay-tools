@@ -1,0 +1,81 @@
+name: windows
+
+# Builds the Windows (x86_64-pc-windows-msvc) binaries on a Linux runner and publishes them to Cloudflare R2:
+#   - ay-tools' own binaries with cargo-xwin, clang-cl, fat LTO and one codegen unit (Cargo.toml [profile.release]);
+#   - Chromium's build tools and infra (siso, cas, isolate, swarming, result_adapter, ninja, depot_tools) from the revisions the DEPS file of
+#     the pinned Chromium version names (ay-tools.toml [chromium]), resolved by ay-deps.
+# It runs on every change to the code, the registry or this file, and every Monday, so a moved pin or a new toolchain is picked up without a hand.
+on:
+  push:
+    branches: [main]
+    paths: [crates/**, tools/**, ay-tools.toml, Cargo.toml, Cargo.lock, rust-toolchain.toml, .github/workflows/windows.yml]
+  schedule:
+    - cron: "17 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: "0"
+  RUSTC_WRAPPER: sccache
+  SCCACHE_GHA_ENABLED: "true"
+  AY_TOOLS_HOME: ${{ runner.temp }}/ay-tools
+
+jobs:
+  windows:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Cross toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends clang lld llvm cmake ninja-build
+          rustup toolchain install
+          rustup target add x86_64-pc-windows-msvc
+      - uses: mozilla-actions/sccache-action@fc920bf0ec8de6ee65d409111f7ec508035751ba # v0.0.11
+      - uses: taiki-e/install-action@ab49d3c64680143e184118bed66a46419fc15519 # v2.90.5
+        with:
+          tool: cargo-xwin
+      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
+        with:
+          go-version: stable
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+      - name: Host ay-deps (resolves Chromium's DEPS)
+        run: cargo build --release -p ay-tools-deps
+      - name: Fetch the Chromium sources at their pins
+        run: bun tools/chromium.ts fetch
+        env:
+          AY_DEPS: ${{ github.workspace }}/target/release/ay-deps
+      - name: Build for Windows
+        run: bun tools/chromium.ts build
+        env:
+          AY_DEPS: ${{ github.workspace }}/target/release/ay-deps
+          GOFLAGS: -mod=mod
+      - name: Manifest
+        run: bun tools/chromium.ts package
+        env:
+          AY_DEPS: ${{ github.workspace }}/target/release/ay-deps
+      - run: sccache --show-stats
+        if: always()
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: windows-x64
+          path: ${{ runner.temp }}/ay-tools/out/windows-x64
+          if-no-files-found: error
+      - name: Publish to Cloudflare R2
+        run: |
+          bun add -g wrangler
+          bun tools/publish.ts
+        env:
+          AY_DEPS: ${{ github.workspace }}/target/release/ay-deps
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
